@@ -10,7 +10,7 @@
 -----------------------------------------------------*/
 
 // I2C
-#define I2C_DEVICE          "/dev/i2c-1"
+#define I2C_DEVICE          "/dev/i2c-2"
 #define I2C_BUS             UINT8_C(1)
 #define I2C_SLAVE	        0x0703
 #define I2C_PRIM_ADDR       UINT8_C(0x68)

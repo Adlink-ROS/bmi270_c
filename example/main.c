@@ -11,6 +11,9 @@
 #include "bmi270.h"
 #include "bmi270_config_file.h"
 
+
+#define ENABLE_SENSOR_LOWER 0
+
 #define UPDATE_RATE 200.0               // Hz       (Current Max: ~1000.0 Hz)
 #define UPDATE_TIME (1.0 / UPDATE_RATE) // Seconds
 #define NUM_DATA 14                     // Number of int values to send
@@ -41,14 +44,17 @@ int main()
 
     struct bmi270 sensor_upper = {.i2c_addr = I2C_PRIM_ADDR};
 
+#if ENABLE_SENSOR_LOWER
     struct bmi270 sensor_lower = {.i2c_addr = I2C_SEC_ADDR};
+#endif
 
     if (bmi270_init(&sensor_upper) == -1)
         printf("Failed to initialize sensor_upper. You might want to do a power cycle.\n");
 
+#if ENABLE_SENSOR_LOWER
     if (bmi270_init(&sensor_lower) == -1)
         printf("Failed to initialize sensor_lower. You might want to do a power cycle.\n");
-
+#endif
     // -------------------------------------------------
     // HARDWARE CONFIGURATION
     // -------------------------------------------------
@@ -66,6 +72,7 @@ int main()
     enable_gyr_noise_perf(&sensor_upper);
     enable_gyr_filter_perf(&sensor_upper);
 
+#if ENABLE_SENSOR_LOWER
     set_mode(&sensor_lower, PERFORMANCE_MODE);
     set_acc_range(&sensor_lower, ACC_RANGE_2G);
     set_gyr_range(&sensor_lower, GYR_RANGE_1000);
@@ -78,7 +85,7 @@ int main()
     enable_acc_filter_perf(&sensor_lower);
     enable_gyr_noise_perf(&sensor_lower);
     enable_gyr_filter_perf(&sensor_lower);
-
+#endif
     // -------------------------------------------------
     // NETWORK CONFIGURATION
     // -------------------------------------------------
@@ -93,8 +100,8 @@ int main()
 
     struct sockaddr_in receiver_address;
     receiver_address.sin_family = AF_INET;
-    receiver_address.sin_addr.s_addr = inet_addr("192.168.1.2");
-    receiver_address.sin_port = htons(8000);
+    receiver_address.sin_addr.s_addr = inet_addr("127.0.0.1");
+    receiver_address.sin_port = htons(5566);
 
 
     // -------------------------------------------------
@@ -140,6 +147,9 @@ int main()
         data_array[5]  = (int32_t)temp_gyr[1];          // Sensor 1 - Gyr Y
         data_array[6]  = (int32_t)temp_gyr[2];          // Sensor 1 - Gyr Z
 
+        printf("%6d,%6d,%6d; %6d,%6d,%6d\n", data_array[1], data_array[2], data_array[3], data_array[4], data_array[5], data_array[6]);
+
+#if ENABLE_SENSOR_LOWER
         clock_gettime(CLOCK_MONOTONIC_RAW, &data_timer);
         data_array[7] = get_microseconds_delta(&old_time2, &data_timer);    // Sensor 2 - Time
         old_time2 = data_timer;
@@ -153,7 +163,7 @@ int main()
         data_array[11] = (int32_t)temp_gyr[0];          // Sensor 2 - Gyr X
         data_array[12] = (int32_t)temp_gyr[1];          // Sensor 2 - Gyr Y
         data_array[13] = (int32_t)temp_gyr[2];          // Sensor 2 - Gyr Z
-
+#endif
         // -------------------------------------------------
         // SENDING DATA
         // -------------------------------------------------
@@ -221,8 +231,9 @@ int main()
     // -------------------------------------------------
 
     close(sensor_upper.i2c_fd);
+#if ENABLE_SENSOR_LOWER
     close(sensor_lower.i2c_fd);
-
+#endif
     printf("\n-------- SCRIPT ENDED SUCCESSFULLY --------\n");
 
     return 0;
