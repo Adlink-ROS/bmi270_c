@@ -2,6 +2,19 @@
 
 Bare bones BMI270 - C implementation (I2C). This was a project for my practical phase at my University and my first time working hands on with IMUs.
 
+## RQX-59G usage
+
+Build application
+```bash
+cd bmi270_c
+make
+```
+
+Run application
+```bash
+./main
+```
+
 ## Usage
 Make sure these lines are connected: GND, 3V3, SDA, SCL
 
