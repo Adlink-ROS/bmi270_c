@@ -12,7 +12,7 @@ make
 
 Run application
 ```bash
-./main
+sudo ./main
 ```
 
 ## Usage
